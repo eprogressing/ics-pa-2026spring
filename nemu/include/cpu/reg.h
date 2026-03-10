@@ -15,19 +15,77 @@ enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
  */
 
 typedef struct {
-  struct {
-    uint32_t _32;
-    uint16_t _16;
-    uint8_t _8[2];
-  } gpr[8];
+  union {
+    union {
+      rtlreg_t _32;
+      uint16_t _16;
+      uint8_t _8[2];
+    } gpr[8];
+
+    struct {
+      union {
+        rtlreg_t eax;
+        uint16_t ax;
+        struct {
+          uint8_t al;
+          uint8_t ah;
+        };
+      };
+
+      union {
+        rtlreg_t ecx;
+        uint16_t cx;
+        struct {
+          uint8_t cl;
+          uint8_t ch;
+        };
+      };
+
+      union {
+        rtlreg_t edx;
+        uint16_t dx;
+        struct {
+          uint8_t dl;
+          uint8_t dh;
+        };
+      };
+
+      union {
+        rtlreg_t ebx;
+        uint16_t bx;
+        struct {
+          uint8_t bl;
+          uint8_t bh;
+        };
+      };
+
+      union {
+        rtlreg_t esp;
+        uint16_t sp;
+      };
+
+      union {
+        rtlreg_t ebp;
+        uint16_t bp;
+      };
+
+      union {
+        rtlreg_t esi;
+        uint16_t si;
+      };
+
+      union {
+        rtlreg_t edi;
+        uint16_t di;
+      };
+    };
+  };
 
   /* Do NOT change the order of the GPRs' definitions. */
 
   /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
    * in PA2 able to directly access these registers.
    */
-  rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
-
   vaddr_t eip;
 
 } CPU_state;
