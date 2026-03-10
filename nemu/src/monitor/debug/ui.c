@@ -9,6 +9,73 @@
 
 void cpu_exec(uint64_t);
 
+static char *skip_blanks(char *s) {
+  if (s == NULL) {
+    return NULL;
+  }
+
+  while (*s == ' ' || *s == '\t') {
+    s ++;
+  }
+
+  return s;
+}
+
+static bool parse_positive_u64(char *s, uint64_t *out) {
+  char *endptr;
+  unsigned long long val;
+
+  s = skip_blanks(s);
+  if (s == NULL || *s == '\0') {
+    return false;
+  }
+
+  val = strtoull(s, &endptr, 10);
+  if (endptr == s || val == 0) {
+    return false;
+  }
+
+  endptr = skip_blanks(endptr);
+  if (*endptr != '\0') {
+    return false;
+  }
+
+  *out = val;
+  return true;
+}
+
+static bool parse_nonnegative_int(char *s, int *out) {
+  char *endptr;
+  long val;
+
+  s = skip_blanks(s);
+  if (s == NULL || *s == '\0') {
+    return false;
+  }
+
+  val = strtol(s, &endptr, 10);
+  if (endptr == s || val < 0) {
+    return false;
+  }
+
+  endptr = skip_blanks(endptr);
+  if (*endptr != '\0') {
+    return false;
+  }
+
+  *out = (int)val;
+  return true;
+}
+
+static void print_registers() {
+  int i;
+
+  for (i = 0; i < 8; i ++) {
+    printf("%-4s\t0x%08x\t%u\n", regsl[i], reg_l(i), reg_l(i));
+  }
+  printf("%-4s\t0x%08x\t%u\n", "eip", cpu.eip, cpu.eip);
+}
+
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
   static char *line_read = NULL;
@@ -36,6 +103,128 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+static int cmd_si(char *args) {
+  uint64_t n = 1;
+
+  args = skip_blanks(args);
+  if (args != NULL && *args != '\0') {
+    if (!parse_positive_u64(args, &n)) {
+      printf("Usage: si [N]\n");
+      return 0;
+    }
+  }
+
+  cpu_exec(n);
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  char *subcmd;
+
+  subcmd = skip_blanks(args);
+  if (subcmd == NULL || *subcmd == '\0') {
+    printf("Usage: info r|w\n");
+    return 0;
+  }
+
+  if (strcmp(subcmd, "r") == 0) {
+    print_registers();
+    return 0;
+  }
+
+  if (strcmp(subcmd, "w") == 0) {
+    print_watchpoints();
+    return 0;
+  }
+
+  printf("Unknown info subcommand '%s'\n", subcmd);
+  return 0;
+}
+
+static int cmd_x(char *args) {
+  char *expr_str;
+  char *endptr;
+  unsigned long n;
+  unsigned long i;
+  uint32_t addr;
+  bool success = true;
+
+  args = skip_blanks(args);
+  if (args == NULL || *args == '\0') {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  n = strtoul(args, &endptr, 10);
+  if (endptr == args || n == 0) {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  expr_str = skip_blanks(endptr);
+  if (*expr_str == '\0') {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  addr = expr(expr_str, &success);
+  if (!success) {
+    printf("Bad expression: %s\n", expr_str);
+    return 0;
+  }
+
+  for (i = 0; i < n; i ++) {
+    uint32_t cur_addr = addr + i * 4;
+    uint32_t data = vaddr_read(cur_addr, 4);
+    printf("0x%08x: 0x%08x\t%u\n", cur_addr, data, data);
+  }
+
+  return 0;
+}
+
+static int cmd_p(char *args) {
+  uint32_t val;
+  bool success = true;
+
+  args = skip_blanks(args);
+  if (args == NULL || *args == '\0') {
+    printf("Usage: p EXPR\n");
+    return 0;
+  }
+
+  val = expr(args, &success);
+  if (!success) {
+    printf("Bad expression: %s\n", args);
+    return 0;
+  }
+
+  printf("%u (0x%x)\n", val, val);
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  args = skip_blanks(args);
+  if (args == NULL || *args == '\0') {
+    printf("Usage: w EXPR\n");
+    return 0;
+  }
+
+  new_watchpoint(args);
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  int no;
+
+  if (!parse_nonnegative_int(args, &no)) {
+    printf("Usage: d N\n");
+    return 0;
+  }
+
+  delete_watchpoint(no);
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -46,6 +235,12 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "Step through program by N instructions", cmd_si },
+  { "info", "Print program status", cmd_info },
+  { "x", "Examine memory", cmd_x },
+  { "p", "Evaluate expression", cmd_p },
+  { "w", "Set a watchpoint", cmd_w },
+  { "d", "Delete a watchpoint", cmd_d },
 
   /* TODO: Add more commands */
 
@@ -55,10 +250,10 @@ static struct {
 
 static int cmd_help(char *args) {
   /* extract the first argument */
-  char *arg = strtok(NULL, " ");
+  char *arg = skip_blanks(args);
   int i;
 
-  if (arg == NULL) {
+  if (arg == NULL || *arg == '\0') {
     /* no argument given */
     for (i = 0; i < NR_CMD; i ++) {
       printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
