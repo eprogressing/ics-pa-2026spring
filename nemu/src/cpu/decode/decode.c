@@ -272,7 +272,12 @@ make_DHelper(J) {
 }
 
 make_DHelper(push_SI) {
-  decode_op_SI(eip, id_dest, true);
+  id_dest->type = OP_TYPE_IMM;
+  id_dest->simm = (int8_t)instr_fetch(eip, 1);
+  rtl_li(&id_dest->val, id_dest->simm);
+#ifdef DEBUG
+  snprintf(id_dest->str, OP_STR_SIZE, "$0x%x", id_dest->simm);
+#endif
 }
 
 make_DHelper(in_I2a) {
