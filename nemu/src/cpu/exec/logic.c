@@ -64,6 +64,54 @@ make_EHelper(or) {
   print_asm_template2(or);
 }
 
+make_EHelper(rol) {
+  uint32_t bits = id_dest->width * 8;
+  uint32_t count = (id_src->val & 0x1f) % bits;
+  rtlreg_t orig = id_dest->val & width_mask(id_dest->width);
+
+  if (count != 0) {
+    rtlreg_t result = ((orig << count) | (orig >> (bits - count))) & width_mask(id_dest->width);
+    rtl_li(&t2, result);
+    operand_write(id_dest, &t2);
+
+    rtl_li(&t0, result & 0x1);
+    rtl_set_CF(&t0);
+
+    if (count == 1) {
+      rtl_msb(&t0, &t2, id_dest->width);
+      rtl_get_CF(&t1);
+      rtl_xor(&t0, &t0, &t1);
+      rtl_set_OF(&t0);
+    }
+  }
+
+  print_asm_template2(rol);
+}
+
+make_EHelper(ror) {
+  uint32_t bits = id_dest->width * 8;
+  uint32_t count = (id_src->val & 0x1f) % bits;
+  rtlreg_t orig = id_dest->val & width_mask(id_dest->width);
+
+  if (count != 0) {
+    rtlreg_t result = ((orig >> count) | (orig << (bits - count))) & width_mask(id_dest->width);
+    rtl_li(&t2, result);
+    operand_write(id_dest, &t2);
+
+    rtl_msb(&t0, &t2, id_dest->width);
+    rtl_set_CF(&t0);
+
+    if (count == 1) {
+      rtl_li(&t0, (result >> (bits - 1)) & 0x1);
+      rtl_li(&t1, (result >> (bits - 2)) & 0x1);
+      rtl_xor(&t0, &t0, &t1);
+      rtl_set_OF(&t0);
+    }
+  }
+
+  print_asm_template2(ror);
+}
+
 make_EHelper(sar) {
   uint32_t count = id_src->val & 0x1f;
   uint32_t bits = id_dest->width * 8;

@@ -42,6 +42,8 @@ make_EHelper(dec);
 make_EHelper(neg);
 make_EHelper(test);
 make_EHelper(not);
+make_EHelper(rol);
+make_EHelper(ror);
 make_EHelper(shl);
 make_EHelper(shr);
 make_EHelper(sar);
@@ -87,7 +89,7 @@ make_group(gp1,
 
 /* 0xc0, 0xc1, 0xd0, 0xd1, 0xd2, 0xd3 */
 make_group(gp2,
-    EMPTY, EMPTY, EMPTY, EMPTY,
+    EX(rol), EX(ror), EMPTY, EMPTY,
     EX(shl), EX(shr), EMPTY, EX(sar))
 
 /* 0xf6, 0xf7 */
