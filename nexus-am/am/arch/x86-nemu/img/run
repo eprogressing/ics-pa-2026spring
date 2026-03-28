@@ -4,4 +4,30 @@ if [ -z "$NEMU_HOME" ]; then
   NEMU_HOME="$(cd "$(dirname "$0")/../../../../../nemu" && pwd)"
 fi
 
-make -C $NEMU_HOME gdb ARGS="-l `dirname $1`/nemu-log.txt $1.bin"
+mode="${NEMU_RUN_MODE:-auto}"
+args="-l $(dirname "$1")/nemu-log.txt $1.bin"
+
+case "$mode" in
+  gdb)
+    target=gdb
+    ;;
+  run)
+    target=run
+    ;;
+  auto)
+    case "$1" in
+      */tests/cputest/*)
+        target=gdb
+        ;;
+      *)
+        target=run
+        ;;
+    esac
+    ;;
+  *)
+    echo "Unknown NEMU_RUN_MODE: $mode" >&2
+    exit 1
+    ;;
+esac
+
+make -C "$NEMU_HOME" "$target" ARGS="$args"
