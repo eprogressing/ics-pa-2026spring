@@ -49,6 +49,8 @@ make_EHelper(shr);
 make_EHelper(sar);
 make_EHelper(push);
 make_EHelper(pop);
+make_EHelper(pusha);
+make_EHelper(popa);
 make_EHelper(leave);
 make_EHelper(cltd);
 make_EHelper(cwtl);
@@ -61,6 +63,8 @@ make_EHelper(jmp_rm);
 make_EHelper(call);
 make_EHelper(call_rm);
 make_EHelper(ret);
+make_EHelper(int);
+make_EHelper(iret);
 make_EHelper(in);
 make_EHelper(out);
 make_EHelper(nop);
@@ -142,7 +146,7 @@ opcode_entry opcode_table [512] = {
   /* 0x54 */	IDEX(r, push), IDEX(r, push), IDEX(r, push), IDEX(r, push),
   /* 0x58 */	IDEX(r, pop), IDEX(r, pop), IDEX(r, pop), IDEX(r, pop),
   /* 0x5c */	IDEX(r, pop), IDEX(r, pop), IDEX(r, pop), IDEX(r, pop),
-  /* 0x60 */	EMPTY, EMPTY, EMPTY, EMPTY,
+  /* 0x60 */	EX(pusha), EX(popa), EMPTY, EMPTY,
   /* 0x64 */	EMPTY, EMPTY, EX(operand_size), EMPTY,
   /* 0x68 */	IDEX(I, push), IDEX(I_E2G, imul3), IDEX(push_SI, push), IDEX(SI_E2G, imul3),
   /* 0x6c */	EMPTY, EMPTY, EMPTY, EMPTY,
@@ -169,7 +173,7 @@ opcode_entry opcode_table [512] = {
   /* 0xc0 */	IDEXW(gp2_Ib2E, gp2, 1), IDEX(gp2_Ib2E, gp2), EMPTY, EX(ret),
   /* 0xc4 */	EMPTY, EMPTY, IDEXW(mov_I2E, mov, 1), IDEX(mov_I2E, mov),
   /* 0xc8 */	EMPTY, EX(leave), EMPTY, EMPTY,
-  /* 0xcc */	EMPTY, EMPTY, EMPTY, EMPTY,
+  /* 0xcc */	EMPTY, IDEXW(I, int, 1), EMPTY, EX(iret),
   /* 0xd0 */	IDEXW(gp2_1_E, gp2, 1), IDEX(gp2_1_E, gp2), IDEXW(gp2_cl2E, gp2, 1), IDEX(gp2_cl2E, gp2),
   /* 0xd4 */	EMPTY, EMPTY, EX(nemu_trap), EMPTY,
   /* 0xd8 */	EMPTY, EMPTY, EMPTY, EMPTY,
