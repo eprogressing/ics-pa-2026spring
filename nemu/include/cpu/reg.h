@@ -95,6 +95,13 @@ typedef struct {
     };
   };
 
+  rtlreg_t cs;
+
+  struct {
+    vaddr_t base;
+    uint16_t limit;
+  } idtr;
+
   /* Do NOT change the order of the GPRs' definitions. */
 
   /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
