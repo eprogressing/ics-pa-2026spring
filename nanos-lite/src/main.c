@@ -11,6 +11,8 @@ void init_irq(void);
 void init_fs(void);
 uint32_t loader(_Protect *, const char *);
 
+static const char *init_program = "/bin/text";
+
 int main() {
 #ifdef HAS_PTE
   init_mm();
@@ -30,7 +32,7 @@ int main() {
 
   init_fs();
 
-  uint32_t entry = loader(NULL, NULL);
+  uint32_t entry = loader(NULL, init_program);
   ((void (*)(void))entry)();
 
   panic("Should not reach here");
