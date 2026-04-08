@@ -11,7 +11,7 @@ void init_irq(void);
 void init_fs(void);
 uint32_t loader(_Protect *, const char *);
 
-static const char *init_program = "/bin/bmptest";
+static const char *init_program = "/bin/events";
 
 int main() {
 #ifdef HAS_PTE
