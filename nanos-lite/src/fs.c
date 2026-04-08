@@ -24,6 +24,9 @@ static Finfo file_table[] __attribute__((used)) = {
 
 extern void ramdisk_read(void *buf, off_t offset, size_t len);
 extern void ramdisk_write(const void *buf, off_t offset, size_t len);
+extern size_t events_read(void *buf, size_t len);
+extern size_t dispinfo_read(void *buf, off_t offset, size_t len);
+extern size_t fb_write(const void *buf, off_t offset, size_t len);
 
 static inline Finfo *get_file(int fd) {
   if ((size_t)fd >= NR_FILES) {
@@ -59,18 +62,23 @@ int fs_open(const char *pathname, int flags, int mode) {
 
 size_t fs_read(int fd, void *buf, size_t len) {
   Finfo *f = get_file(fd);
-  assert(f->open_offset <= f->size);
 
   switch (fd) {
     case FD_STDIN:
     case FD_STDOUT:
     case FD_STDERR:
     case FD_FB:
-    case FD_EVENTS:
-    case FD_DISPINFO:
       assert(0);
       return 0;
+    case FD_EVENTS:
+      return events_read(buf, len);
+    case FD_DISPINFO: {
+      size_t nread = dispinfo_read(buf, f->open_offset, len);
+      f->open_offset += nread;
+      return nread;
+    }
     default: {
+      assert(f->open_offset <= f->size);
       size_t nread = len;
       if (f->open_offset + nread > f->size) {
         nread = f->size - f->open_offset;
@@ -84,7 +92,6 @@ size_t fs_read(int fd, void *buf, size_t len) {
 
 size_t fs_write(int fd, const void *buf, size_t len) {
   Finfo *f = get_file(fd);
-  assert(f->open_offset <= f->size);
 
   switch (fd) {
     case FD_STDOUT:
@@ -94,16 +101,21 @@ size_t fs_write(int fd, const void *buf, size_t len) {
       for (i = 0; i < len; i ++) {
         _putc(str[i]);
       }
-      f->open_offset += len;
       return len;
     }
     case FD_STDIN:
-    case FD_FB:
     case FD_EVENTS:
     case FD_DISPINFO:
       assert(0);
       return 0;
+    case FD_FB: {
+      assert(f->open_offset <= f->size);
+      size_t nwrite = fb_write(buf, f->open_offset, len);
+      f->open_offset += nwrite;
+      return nwrite;
+    }
     default: {
+      assert(f->open_offset <= f->size);
       size_t nwrite = len;
       if (f->open_offset + nwrite > f->size) {
         nwrite = f->size - f->open_offset;
