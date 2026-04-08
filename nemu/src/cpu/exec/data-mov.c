@@ -5,6 +5,22 @@ make_EHelper(mov) {
   print_asm_template2(mov);
 }
 
+make_EHelper(movsb) {
+  rtl_lr_l(&t0, R_ESI);
+  rtl_lm(&t1, &t0, 1);
+
+  rtl_lr_l(&t2, R_EDI);
+  rtl_sm(&t2, 1, &t1);
+
+  int step = (cpu.eflags & 0x400) ? -1 : 1;
+  rtl_addi(&t0, &t0, step);
+  rtl_sr_l(R_ESI, &t0);
+  rtl_addi(&t2, &t2, step);
+  rtl_sr_l(R_EDI, &t2);
+
+  print_asm("movsb");
+}
+
 make_EHelper(push) {
   if (id_dest->type == OP_TYPE_IMM && decoding.opcode == 0x6a) {
     t1 = (int32_t)(int8_t)id_dest->val;

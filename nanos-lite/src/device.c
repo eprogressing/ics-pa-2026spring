@@ -30,7 +30,7 @@ size_t events_read(void *buf, size_t len) {
     sprintf(event, "%s %s\n", keydown ? "kd" : "ku", name);
   }
   else {
-    sprintf(event, "t %lu\n", _uptime());
+    sprintf(event, "t %d\n", (int)_uptime());
   }
 
   size_t nread = strlen(event);
