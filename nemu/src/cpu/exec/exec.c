@@ -75,6 +75,7 @@ make_EHelper(imul3);
 make_EHelper(div);
 make_EHelper(idiv);
 make_EHelper(setcc);
+make_EHelper(bsr);
 make_EHelper(lidt);
 
 #define make_group(name, item0, item1, item2, item3, item4, item5, item6, item7) \
@@ -236,7 +237,7 @@ opcode_entry opcode_table [512] = {
   /* 0xb0 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0xb4 */	EMPTY, EMPTY, IDEXW(mov_E2G, movzx, 1), IDEXW(mov_E2G, movzx, 2),
   /* 0xb8 */	EMPTY, EMPTY, EMPTY, EMPTY,
-  /* 0xbc */	EMPTY, EMPTY, IDEXW(mov_E2G, movsx, 1), IDEXW(mov_E2G, movsx, 2),
+  /* 0xbc */	EMPTY, IDEX(E2G, bsr), IDEXW(mov_E2G, movsx, 1), IDEXW(mov_E2G, movsx, 2),
   /* 0xc0 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0xc4 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0xc8 */	EMPTY, EMPTY, EMPTY, EMPTY,
