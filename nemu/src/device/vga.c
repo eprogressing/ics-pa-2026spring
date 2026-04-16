@@ -28,8 +28,12 @@ void update_screen() {
 
 void init_vga() {
   SDL_Init(SDL_INIT_VIDEO);
+  SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
   SDL_CreateWindowAndRenderer(SCREEN_W * 2, SCREEN_H * 2, 0, &window, &renderer);
   SDL_SetWindowTitle(window, "NEMU");
+  SDL_ShowWindow(window);
+  SDL_RaiseWindow(window);
+  SDL_SetWindowGrab(window, SDL_TRUE);
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
       SDL_TEXTUREACCESS_STATIC, SCREEN_W, SCREEN_H);
 
