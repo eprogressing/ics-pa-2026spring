@@ -511,6 +511,7 @@ void
 main_loop() {
    WORD          wScreenWidth = 0, wScreenHeight = 0;
    BOOL          fFullScreen = FALSE;
+   const BOOL    fSkipOpening = TRUE;
 
 #if defined(__APPLE__) && !defined(__IOS__)
    char *p = strstr(argv[0], "/Pal.app/");
@@ -552,9 +553,11 @@ main_loop() {
    //
    // Show the trademark screen and splash screen
    //
-   // TODO: should we display these?
-   PAL_TrademarkScreen();
-   PAL_SplashScreen();
+   if (!fSkipOpening)
+   {
+      PAL_TrademarkScreen();
+      PAL_SplashScreen();
+   }
 
    //
    // Run the main game routine
