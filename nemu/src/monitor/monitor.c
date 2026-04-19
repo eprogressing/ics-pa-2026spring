@@ -84,6 +84,8 @@ static inline void restart() {
   cpu.eip = ENTRY_START;
   cpu.cs = 8;
   cpu.eflags = 0x2;
+  cpu.cr0.val = 0x60000011;
+  cpu.cr3.val = 0;
   cpu.idtr.base = 0;
   cpu.idtr.limit = 0;
 

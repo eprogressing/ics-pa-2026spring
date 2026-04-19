@@ -133,6 +133,16 @@ make_DHelper(mov_E2G) {
   decode_op_rm(eip, id_src, true, id_dest, false);
 }
 
+make_DHelper(mov_r2cr) {
+  decode_op_rm(eip, id_src, true, id_dest, false);
+  assert(id_src->type == OP_TYPE_REG);
+}
+
+make_DHelper(mov_cr2r) {
+  decode_op_rm(eip, id_dest, false, id_src, false);
+  assert(id_dest->type == OP_TYPE_REG);
+}
+
 make_DHelper(lea_M2G) {
   decode_op_rm(eip, id_src, false, id_dest, false);
 }
