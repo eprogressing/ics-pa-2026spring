@@ -62,7 +62,13 @@ void paddr_write(paddr_t addr, int len, uint32_t data) {
 
 uint32_t vaddr_read(vaddr_t addr, int len) {
   if (is_page_enabled()) {
-    assert(((addr & PAGE_MASK) + len - 1) < PAGE_SIZE);
+    if (((addr & PAGE_MASK) + len - 1) >= PAGE_SIZE) {
+      uint32_t data = 0;
+      for (int i = 0; i < len; i ++) {
+        data |= paddr_read(page_translate(addr + i, false), 1) << (i << 3);
+      }
+      return data;
+    }
     return paddr_read(page_translate(addr, false), len);
   }
   return paddr_read(addr, len);
@@ -70,7 +76,12 @@ uint32_t vaddr_read(vaddr_t addr, int len) {
 
 void vaddr_write(vaddr_t addr, int len, uint32_t data) {
   if (is_page_enabled()) {
-    assert(((addr & PAGE_MASK) + len - 1) < PAGE_SIZE);
+    if (((addr & PAGE_MASK) + len - 1) >= PAGE_SIZE) {
+      for (int i = 0; i < len; i ++) {
+        paddr_write(page_translate(addr + i, true), 1, data >> (i << 3));
+      }
+      return;
+    }
     paddr_write(page_translate(addr, true), len, data);
     return;
   }
