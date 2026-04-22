@@ -1,6 +1,9 @@
+#include <am.h>
 #include <x86.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
+#define USER_SPACE_START 0x4000000
+#define USER_SPACE_END   0x8000000
 
 static PDE kpdirs[NR_PDE] PG_ALIGN;
 static PTE kptabs[PMEM_SIZE / PGSIZE] PG_ALIGN;
@@ -51,11 +54,13 @@ void _protect(_Protect *p) {
   p->ptr = updir;
   // map kernel space
   for (int i = 0; i < NR_PDE; i ++) {
-    updir[i] = kpdirs[i];
+    if (i < PDX(USER_SPACE_START) || i >= PDX(USER_SPACE_END)) {
+      updir[i] = kpdirs[i];
+    }
   }
 
-  p->area.start = (void*)0x8000000;
-  p->area.end = (void*)0xc0000000;
+  p->area.start = (void*)USER_SPACE_START;
+  p->area.end = (void*)USER_SPACE_END;
 }
 
 void _release(_Protect *p) {
@@ -66,6 +71,22 @@ void _switch(_Protect *p) {
 }
 
 void _map(_Protect *p, void *va, void *pa) {
+  if ((uintptr_t)va % PGSIZE != 0) _halt(1);
+  if ((uintptr_t)pa % PGSIZE != 0) _halt(1);
+  if (!(p->area.start <= va && va < p->area.end)) _halt(1);
+
+  PDE *updir = (PDE *)p->ptr;
+  uint32_t pdx = PDX(va);
+  uint32_t ptx = PTX(va);
+
+  if ((updir[pdx] & PTE_P) == 0) {
+    PTE *ptab = (PTE *)palloc_f();
+    updir[pdx] = (uintptr_t)ptab | PTE_P | PTE_W | PTE_U;
+  }
+
+  PTE *ptab = (PTE *)PTE_ADDR(updir[pdx]);
+  if (ptab[ptx] & PTE_P) _halt(1);
+  ptab[ptx] = (uintptr_t)pa | PTE_P | PTE_W | PTE_U;
 }
 
 void _unmap(_Protect *p, void *va) {
