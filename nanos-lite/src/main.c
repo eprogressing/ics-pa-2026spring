@@ -12,7 +12,11 @@ void init_fs(void);
 uint32_t loader(_Protect *, const char *);
 void load_prog(const char *filename);
 
-static const char *init_program = "/bin/hello";
+#ifndef USER_PROGRAM
+#define USER_PROGRAM "/bin/hello"
+#endif
+
+static const char *init_program = USER_PROGRAM;
 
 int main() {
 #ifdef HAS_PTE

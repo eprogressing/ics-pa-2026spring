@@ -1,6 +1,9 @@
 NAME = nanos-lite
 SRCS = $(shell find -L ./src/ -name "*.c" -o -name "*.cpp" -o -name "*.S")
 LIBS = klib
+USER_PROGRAM ?= /bin/hello
+USER_PROGRAM_IMAGE = $(if $(filter /bin/bmp,$(USER_PROGRAM)),/bin/bmptest,$(USER_PROGRAM))
+CFLAGS += -DUSER_PROGRAM=\"$(USER_PROGRAM_IMAGE)\"
 include $(AM_HOME)/Makefile.app
 
 FSIMG_PATH = $(NAVY_HOME)/fsimg
@@ -33,3 +36,6 @@ src/syscall.h: $(NAVY_HOME)/libs/libos/src/syscall.h
 
 update: update-ramdisk-fsimg src/syscall.h
 	@touch src/initrd.S
+
+.PHONY: force-user-program
+$(DST_DIR)/./src/main.o: force-user-program

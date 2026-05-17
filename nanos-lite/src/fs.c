@@ -151,7 +151,8 @@ size_t fs_lseek(int fd, size_t offset, int whence) {
 }
 
 int fs_close(int fd) {
-  get_file(fd);
+  Finfo *f = get_file(fd);
+  f->open_offset = 0;
   return 0;
 }
 
