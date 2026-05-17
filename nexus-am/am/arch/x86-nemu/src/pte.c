@@ -2,8 +2,8 @@
 #include <x86.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
-#define USER_SPACE_START 0x4000000
-#define USER_SPACE_END   0x8000000
+#define USER_SPACE_START 0x08000000
+#define USER_SPACE_END   0x10000000
 
 static PDE kpdirs[NR_PDE] PG_ALIGN;
 static PTE kptabs[PMEM_SIZE / PGSIZE] PG_ALIGN;
@@ -93,5 +93,26 @@ void _unmap(_Protect *p, void *va) {
 }
 
 _RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
-  return NULL;
+  (void)argv;
+  (void)envp;
+
+  uintptr_t start = (uintptr_t)ustack.start;
+  uintptr_t end = (uintptr_t)ustack.end;
+  if (start % PGSIZE != 0 || end % PGSIZE != 0 || start >= end) _halt(1);
+
+  for (uintptr_t va = start; va < end; va += PGSIZE) {
+    _map(p, (void *)va, palloc_f());
+  }
+
+  _RegSet *tf = (_RegSet *)((uintptr_t)kstack.end - sizeof(_RegSet));
+  uintptr_t *slot = (uintptr_t *)tf;
+  for (size_t i = 0; i < sizeof(_RegSet) / sizeof(uintptr_t); i ++) {
+    slot[i] = 0;
+  }
+
+  tf->esp = (uintptr_t)ustack.end;
+  tf->eip = (uintptr_t)entry;
+  tf->cs = USEL(SEG_UCODE);
+  tf->eflags = 0x2;
+  return tf;
 }

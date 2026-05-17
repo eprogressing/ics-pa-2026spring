@@ -1,7 +1,9 @@
 #include "common.h"
 #include "memory.h"
 
-#define DEFAULT_ENTRY ((void *)0x4000000)
+#define DEFAULT_ENTRY ((void *)0x8048000)
+
+uintptr_t loader_brk = 0;
 
 extern int fs_open(const char *pathname, int flags, int mode);
 extern size_t fs_read(int fd, void *buf, size_t len);
@@ -15,6 +17,7 @@ uintptr_t loader(_Protect *as, const char *filename) {
 
   int fd = fs_open(filename, 0, 0);
   size_t size = fs_filesz(fd);
+  loader_brk = PGROUNDUP((uintptr_t)DEFAULT_ENTRY + size);
 
   if (as == NULL) {
     size_t nread = fs_read(fd, DEFAULT_ENTRY, size);
