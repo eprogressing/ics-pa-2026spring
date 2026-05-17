@@ -1,7 +1,8 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-#define DEBUG
+/* DEBUG enables verbose decode/execute tracing and slows down long-running apps. */
+// #define DEBUG
 //#define DIFF_TEST
 
 /* You will define this macro in PA2 */
