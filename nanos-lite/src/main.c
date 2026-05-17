@@ -13,7 +13,7 @@ uint32_t loader(_Protect *, const char *);
 void load_prog(const char *filename);
 
 #ifndef USER_PROGRAM
-#define USER_PROGRAM "/bin/hello"
+#define USER_PROGRAM "/bin/pal"
 #endif
 
 static const char *init_program = USER_PROGRAM;

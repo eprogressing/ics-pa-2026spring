@@ -1,7 +1,12 @@
 NAME = nanos-lite
 SRCS = $(shell find -L ./src/ -name "*.c" -o -name "*.cpp" -o -name "*.S")
 LIBS = klib
-USER_PROGRAM ?= /bin/hello
+PA_HOME = $(abspath ..)
+override NEMU_HOME := $(PA_HOME)/nemu
+override AM_HOME := $(PA_HOME)/nexus-am
+override NAVY_HOME := $(PA_HOME)/navy-apps
+ARCH ?= x86-nemu
+USER_PROGRAM ?= /bin/pal
 USER_PROGRAM_IMAGE = $(if $(filter /bin/bmp,$(USER_PROGRAM)),/bin/bmptest,$(USER_PROGRAM))
 CFLAGS += -DUSER_PROGRAM=\"$(USER_PROGRAM_IMAGE)\"
 include $(AM_HOME)/Makefile.app
