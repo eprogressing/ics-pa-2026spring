@@ -35,7 +35,7 @@ ifeq ($(ISA), mips32)
 endif
 
 ifeq ($(ISA), x86)
-  CFLAGS_COMMON = -m32 -fno-pic -fno-builtin -fno-stack-protector -fno-omit-frame-pointer -march=i386 -mstringop-strategy=unrolled_loop
+  CFLAGS_COMMON = -m32 -fcommon -fno-pic -fno-builtin -fno-stack-protector -fno-omit-frame-pointer -march=i386 -mstringop-strategy=unrolled_loop
   CFLAGS   += $(CFLAGS_COMMON)
   CXXFLAGS += $(CFLAGS_COMMON) -ffreestanding -fno-rtti -fno-exceptions
   ASFLAGS  += -m32
