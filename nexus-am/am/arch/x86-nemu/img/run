@@ -5,26 +5,28 @@ if [ -z "$NEMU_HOME" ]; then
 fi
 
 mode="${NEMU_RUN_MODE:-auto}"
-log_args="-l $(dirname "$1")/nemu-log.txt $1.bin"
+log_file="$(dirname "$1")/nemu-log.txt"
+run_args="$1.bin"
+debug_args="-l $log_file $1.bin"
 
 case "$mode" in
   gdb)
     target=gdb
-    args="$log_args"
+    args="$debug_args"
     ;;
   run)
     target=run
-    args="-b $log_args"
+    args="-b $run_args"
     ;;
   auto)
     case "$1" in
       */tests/cputest/*)
         target=gdb
-        args="$log_args"
+        args="$debug_args"
         ;;
       *)
         target=run
-        args="-b $log_args"
+        args="-b $run_args"
         ;;
     esac
     ;;

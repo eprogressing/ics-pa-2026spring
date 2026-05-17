@@ -9,8 +9,14 @@ PCB *current = NULL;
 uintptr_t loader(_Protect *as, const char *filename);
 
 void load_prog(const char *filename) {
-  int i = nr_proc ++;
+  int i = nr_proc;
+  assert(i < MAX_NR_PROC);
+  nr_proc ++;
+
+  memset(&pcb[i], 0, sizeof(PCB));
   _protect(&pcb[i].as);
+  pcb[i].cur_brk = 0;
+  pcb[i].max_brk = 0;
 
   uintptr_t entry = loader(&pcb[i].as, filename);
 
